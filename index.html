@@ -137,6 +137,7 @@
     setInterval(updateClock, 1000);
     updateClock();
 
+    // 数据和计时变量，以秒为单位记录时间
     let events = JSON.parse(localStorage.getItem('events')) || [];
     let workTimerStart = null;
     let playTimerStart = null;
@@ -147,8 +148,9 @@
     let lastWorkRecordTime = null;
     let lastPlayRecordTime = null;
 
-    function formatTime(totalMinutes) {
-      let totalSeconds = Math.round(totalMinutes * 60);
+    // 将累计的秒数转换为h min s格式
+    function formatTime(totalSeconds) {
+      totalSeconds = Math.max(0, Math.round(totalSeconds)); // 确保非负整数
       let hours = Math.floor(totalSeconds / 3600);
       let minutes = Math.floor((totalSeconds % 3600) / 60);
       let seconds = totalSeconds % 60;
@@ -161,19 +163,20 @@
       let workSum = workEvents.reduce((sum, e) => sum + e.value, 0);
       let playSum = playEvents.reduce((sum, e) => sum + e.value, 0);
       let diffSum = workSum - playSum;
-      let workExpr = workEvents.map(e => e.value).join('+') || '0';
-      let playExpr = playEvents.map(e => e.value).join('+') || '0';
-      let diffExpr = events.map(e => (e.type === 'work' ? '+' + e.value : '-' + e.value)).join('');
-      if(diffExpr.startsWith('+')) diffExpr = diffExpr.substring(1);
-      document.getElementById('workTime').textContent = `${workExpr}=${formatTime(workSum)}`;
-      document.getElementById('playTime').textContent = `${playExpr}=${formatTime(playSum)}`;
-      document.getElementById('diffTime').textContent = `${diffExpr}=${formatTime(diffSum)}`;
+      let workExpr = workEvents.map(e => formatTime(e.value)).join(' + ') || '0h 0min 0s';
+      let playExpr = playEvents.map(e => formatTime(e.value)).join(' + ') || '0h 0min 0s';
+      let diffExpr = events.map(e => (e.type === 'work' ? '+' : '-') + formatTime(e.value)).join(' ');
+      if(diffExpr.startsWith('+')) diffExpr = diffExpr.substring(1).trim();
+      document.getElementById('workTime').textContent = `${workExpr} = ${formatTime(workSum)}`;
+      document.getElementById('playTime').textContent = `${playExpr} = ${formatTime(playSum)}`;
+      document.getElementById('diffTime').textContent = `${diffExpr} = ${formatTime(diffSum)}`;
     }
 
     document.getElementById('workBtn').addEventListener('click', () => {
       const amount = parseFloat(prompt('你工作了多少分钟？'));
       if (!isNaN(amount) && amount > 0) {
-        events.push({type: 'work', value: amount});
+        // 将分钟转换为秒
+        events.push({type: 'work', value: amount * 60});
         localStorage.setItem('events', JSON.stringify(events));
         updateDisplay();
       }
@@ -182,7 +185,7 @@
     document.getElementById('playBtn').addEventListener('click', () => {
       const amount = parseFloat(prompt('你娱乐了多少分钟？'));
       if (!isNaN(amount) && amount > 0) {
-        events.push({type: 'play', value: amount});
+        events.push({type: 'play', value: amount * 60});
         localStorage.setItem('events', JSON.stringify(events));
         updateDisplay();
       }
@@ -221,15 +224,15 @@
         workInterval = setInterval(updateWorkTimer, 1000);
         workRecordInterval = setInterval(() => {
           let now = Date.now();
-          let elapsed = (now - lastWorkRecordTime) / 60000;
-          elapsed = Math.round(elapsed * 10) / 10;
-          if(elapsed > 0) {
-            events.push({type: 'work', value: elapsed});
+          let elapsedSeconds = (now - lastWorkRecordTime) / 1000;
+          elapsedSeconds = Math.round(elapsedSeconds);
+          if(elapsedSeconds > 0) {
+            events.push({type: 'work', value: elapsedSeconds});
             localStorage.setItem('events', JSON.stringify(events));
             updateDisplay();
           }
           lastWorkRecordTime = now;
-        }, 1000);  // 每秒记录一次
+        }, 1000);
       }
     });
 
@@ -256,15 +259,15 @@
         playInterval = setInterval(updatePlayTimer, 1000);
         playRecordInterval = setInterval(() => {
           let now = Date.now();
-          let elapsed = (now - lastPlayRecordTime) / 60000;
-          elapsed = Math.round(elapsed * 10) / 10;
-          if(elapsed > 0) {
-            events.push({type: 'play', value: elapsed});
+          let elapsedSeconds = (now - lastPlayRecordTime) / 1000;
+          elapsedSeconds = Math.round(elapsedSeconds);
+          if(elapsedSeconds > 0) {
+            events.push({type: 'play', value: elapsedSeconds});
             localStorage.setItem('events', JSON.stringify(events));
             updateDisplay();
           }
           lastPlayRecordTime = now;
-        }, 1000);  // 每秒记录一次
+        }, 1000);
       }
     });
 
