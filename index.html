@@ -54,11 +54,9 @@
       font-size: 18px;
       margin: 10px 0;
     }
-    /* 固定位置的一键清空按钮 */
+    /* “一键清空”按钮样式 */
     #clearBtn {
-      position: fixed;
-      bottom: 20px;
-      right: 20px;
+      margin-top: 40px;
       width: 150px;
       padding: 5px 10px;
       font-size: 14px;
@@ -158,7 +156,6 @@
     updateClock();
 
     let events = JSON.parse(localStorage.getItem('events')) || [];
-    let pastSurplus = parseFloat(localStorage.getItem('pastSurplus')) || 0;
     let workTimerStart = null;
     let playTimerStart = null;
     let workInterval = null;
@@ -181,18 +178,33 @@
     function updateDisplay() {
       let workEvents = events.filter(e => e.type === 'work');
       let playEvents = events.filter(e => e.type === 'play');
+      let surplusEvents = events.filter(e => e.type === 'surplus');
       let workSum = workEvents.reduce((sum, e) => sum + e.value, 0);
       let playSum = playEvents.reduce((sum, e) => sum + e.value, 0);
-      let diffSum = workSum - playSum + pastSurplus;
+      let surplusSum = surplusEvents.reduce((sum, e) => sum + e.value, 0);
+      let diffSum = workSum - playSum + surplusSum;
       
       let workExpr = workEvents.length === 0 ? '0h 0min 0s' : workEvents.map(e => '+' + formatTime(e.value)).join('<br>');
       let playExpr = playEvents.length === 0 ? '0h 0min 0s' : playEvents.map(e => '+' + formatTime(e.value)).join('<br>');
-      let diffExpr = events.length === 0 ? '0h 0min 0s' : events.map(e => (e.type === 'work' ? '+' : '-') + formatTime(e.value)).join('<br>');
+      let surplusExpr = surplusEvents.length === 0 ? '' : surplusEvents.map(e => '+' + formatTime(e.value)).join('<br>');
+      
+      // 拼接结余表达式时，包括surplus部分
+      let diffExpr = '';
+      if(diffSum === 0) {
+        diffExpr = '0h 0min 0s';
+      } else {
+        // 分别列出工作、娱乐和结余项
+        let parts = [];
+        workEvents.forEach(e => parts.push('+' + formatTime(e.value)));
+        playEvents.forEach(e => parts.push('-' + formatTime(e.value)));
+        surplusEvents.forEach(e => parts.push('+' + formatTime(e.value)));
+        diffExpr = parts.join('<br>');
+      }
       
       document.getElementById('workTime').innerHTML = `${workExpr}<br>= ${formatTime(workSum)}`;
       document.getElementById('playTime').innerHTML = `${playExpr}<br>= ${formatTime(playSum)}`;
       document.getElementById('diffTime').innerHTML = `${diffExpr}<br>= ${formatTime(diffSum)}`;
-
+      
       // 工作成就徽章逻辑
       const badgesContainer = document.getElementById('badges');
       badgesContainer.innerHTML = '';
@@ -255,8 +267,8 @@
     document.getElementById('surplusBtn').addEventListener('click', () => {
       const amount = parseFloat(prompt('请输入过去结余时间（分钟）：'));
       if (!isNaN(amount) && amount > 0) {
-        pastSurplus += amount * 60;
-        localStorage.setItem('pastSurplus', pastSurplus);
+        events.push({type: 'surplus', value: amount * 60});
+        localStorage.setItem('events', JSON.stringify(events));
         updateDisplay();
       }
     });
@@ -360,9 +372,7 @@
     document.getElementById('clearBtn').addEventListener('click', () => {
       if(confirm("确认要清空所有记录吗？")) {
         events = [];
-        pastSurplus = 0;
         localStorage.removeItem('events');
-        localStorage.removeItem('pastSurplus');
         updateDisplay();
         if(workTimerStart !== null) {
           clearInterval(workInterval);
