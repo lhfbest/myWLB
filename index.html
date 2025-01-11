@@ -1,51 +1,106 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>时间记录器</title>
-  <link rel="manifest" href="manifest.json">
+  <link rel="manifest" href="manifest.json" />
   <style>
-    body { font-family: Arial, sans-serif; margin: 20px; }
-    button { padding: 10px; margin: 5px 0; font-size: 16px; }
-    p { font-size: 18px; }
+    /* 全局样式 */
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #f2f2f2;
+      color: #333;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+
+    .container {
+      background: #fff;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      padding: 20px;
+      max-width: 400px;
+      width: 90%;
+      text-align: center;
+    }
+
+    h1 {
+      margin-top: 0;
+      color: #317EFB;
+    }
+
+    button {
+      display: block;
+      width: 100%;
+      padding: 12px;
+      margin: 10px 0;
+      font-size: 16px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+
+    #workBtn {
+      background-color: #4CAF50;
+      color: #fff;
+    }
+    #workBtn:hover {
+      background-color: #45a049;
+    }
+
+    #playBtn {
+      background-color: #FF9800;
+      color: #fff;
+    }
+    #playBtn:hover {
+      background-color: #e68900;
+    }
+
+    #clearBtn {
+      background-color: #f44336;
+      color: #fff;
+    }
+    #clearBtn:hover {
+      background-color: #d32f2f;
+    }
+
+    p {
+      font-size: 18px;
+      margin: 10px 0;
+    }
   </style>
 </head>
 <body>
-  <h1>时间记录器</h1>
-  <div>
-    <button id="workBtn">记录工作时间</button><br>
-    <button id="playBtn">记录娱乐时间</button><br>
-    <!-- 新增清空按钮 -->
-    <button id="clearBtn">一键清空</button><br><br>
+  <div class="container">
+    <h1>时间记录器</h1>
+    <button id="workBtn">记录工作时间</button>
+    <button id="playBtn">记录娱乐时间</button>
+    <button id="clearBtn">一键清空</button>
     <p>工作时长: <span id="workTime">0min</span></p>
     <p>娱乐时长: <span id="playTime">0min</span></p>
     <p>差值 (工作-娱乐): <span id="diffTime">0min</span></p>
   </div>
   
   <script>
-    // 从 localStorage 初始化事件数组
+    // JavaScript代码保持不变...
     let events = JSON.parse(localStorage.getItem('events')) || [];
 
     function updateDisplay() {
-      // 分别筛选工作和娱乐事件
       let workEvents = events.filter(e => e.type === 'work');
       let playEvents = events.filter(e => e.type === 'play');
-
-      // 计算各自总时长
       let workSum = workEvents.reduce((sum, e) => sum + e.value, 0);
       let playSum = playEvents.reduce((sum, e) => sum + e.value, 0);
       let diffSum = workSum - playSum;
-
-      // 构建显示表达式
       let workExpr = workEvents.map(e => e.value).join('+') || '0';
       let playExpr = playEvents.map(e => e.value).join('+') || '0';
-
-      // 对差值，按照事件顺序显示“+”或“-”
       let diffExpr = events.map(e => (e.type === 'work' ? '+' + e.value : '-' + e.value)).join('');
       if(diffExpr.startsWith('+')) diffExpr = diffExpr.substring(1);
-
-      // 更新页面显示内容
       document.getElementById('workTime').textContent = `${workExpr}=${workSum}min`;
       document.getElementById('playTime').textContent = `${playExpr}=${playSum}min`;
       document.getElementById('diffTime').textContent = `${diffExpr}=${diffSum}min`;
@@ -69,7 +124,6 @@
       }
     });
 
-    // 新增“一键清空”按钮点击事件
     document.getElementById('clearBtn').addEventListener('click', () => {
       if(confirm("确认要清空所有记录吗？")) {
         events = [];
@@ -80,7 +134,6 @@
 
     updateDisplay();
 
-    // 注册 Service Worker
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('sw.js')
         .then(registration => console.log('Service Worker 注册成功:', registration))
