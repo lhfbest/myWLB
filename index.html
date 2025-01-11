@@ -13,7 +13,7 @@
       color: #333;
       margin: 20px;
     }
-    /* 实时钟样式，居中显示 */
+    /* 实时钟样式 */
     #clock {
       font-size: 20px;
       margin-bottom: 20px;
@@ -79,6 +79,21 @@
       margin: 5px 0;
       color: #555;
     }
+    /* 徽章样式 */
+    #badges {
+      margin-top: 20px;
+      padding: 10px;
+      border-top: 1px solid #ccc;
+    }
+    .badge {
+      display: inline-block;
+      margin-right: 10px;
+      padding: 5px 10px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      background: #eee;
+      font-size: 14px;
+    }
   </style>
 </head>
 <body>
@@ -106,6 +121,8 @@
     </div>
   </div>
   <button id="clearBtn">一键清空</button>
+  <!-- 徽章显示区域 -->
+  <div id="badges"></div>
   
   <script>
     function updateClock() {
@@ -121,7 +138,6 @@
     setInterval(updateClock, 1000);
     updateClock();
 
-    // 以秒为单位记录时间
     let events = JSON.parse(localStorage.getItem('events')) || [];
     let workTimerStart = null;
     let playTimerStart = null;
@@ -155,6 +171,26 @@
       document.getElementById('workTime').textContent = `${workExpr} = ${formatTime(workSum)}`;
       document.getElementById('playTime').textContent = `${playExpr} = ${formatTime(playSum)}`;
       document.getElementById('diffTime').textContent = `${diffExpr} = ${formatTime(diffSum)}`;
+
+      // 更新徽章显示
+      const badgesContainer = document.getElementById('badges');
+      badgesContainer.innerHTML = '';
+      const achievements = [
+        { threshold: 1800, label: '小试锋芒', icon: '🎖️' },
+        { threshold: 3600, label: '卧龙出山', icon: '🏅' },
+        { threshold: 7200, label: '双连！一战成名', icon: '🎖️' },
+        { threshold: 10800, label: '三连！举世皆惊', icon: '🏅' },
+        { threshold: 14400, label: '四连！天下无敌', icon: '🎖️' },
+        { threshold: 18000, label: '五连！诛天灭地', icon: '🏅' }
+      ];
+      achievements.forEach(ach => {
+        if(workSum >= ach.threshold) {
+          const span = document.createElement('span');
+          span.className = 'badge';
+          span.textContent = `${ach.icon} ${ach.label}`;
+          badgesContainer.appendChild(span);
+        }
+      });
     }
 
     document.getElementById('workBtn').addEventListener('click', () => {
