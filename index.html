@@ -6,76 +6,42 @@
   <title>时间记录器</title>
   <link rel="manifest" href="manifest.json" />
   <style>
-    /* 全局样式 */
+    /* 全局样式：冷淡风格 */
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: #f2f2f2;
+      background: #ffffff; /* 纯白背景 */
       color: #333;
-      margin: 0;
-      padding: 0;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
+      margin: 20px;
     }
 
-    /* 实时钟样式 */
+    /* 实时钟样式，居中显示 */
     #clock {
       font-size: 20px;
-      margin: 20px 0;
-      text-align: center;
-      color: #317EFB;
-    }
-
-    .container {
-      background: #fff;
-      border-radius: 8px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-      padding: 20px;
-      max-width: 400px;
-      width: 90%;
-      text-align: center;
       margin-bottom: 20px;
+      text-align: center;
+      color: #333;
     }
 
     h1 {
-      margin-top: 0;
-      color: #317EFB;
+      color: #333;
+      margin-bottom: 10px;
     }
 
     button {
       display: block;
-      width: 100%;
-      padding: 12px;
+      width: auto;
+      padding: 10px 20px;
       margin: 10px 0;
       font-size: 16px;
-      border: none;
+      border: 1px solid #ccc;
+      background: #f9f9f9;
+      color: #333;
       border-radius: 4px;
       cursor: pointer;
-      transition: background 0.3s;
     }
 
-    #workBtn {
-      background-color: #4CAF50;
-      color: #fff;
-    }
-    #workBtn:hover {
-      background-color: #45a049;
-    }
-
-    #playBtn {
-      background-color: #FF9800;
-      color: #fff;
-    }
-    #playBtn:hover {
-      background-color: #e68900;
-    }
-
-    #clearBtn {
-      background-color: #f44336;
-      color: #fff;
-    }
-    #clearBtn:hover {
-      background-color: #d32f2f;
+    button:hover {
+      background: #eee;
     }
 
     p {
@@ -83,9 +49,9 @@
       margin: 10px 0;
     }
 
-    /* 为清空按钮和“差值”之间增加间距 */
+    /* 为“一键清空”按钮增加上方间距，使其远离其他元素 */
     #clearBtn {
-      margin-top: 20px;
+      margin-top: 40px;
     }
   </style>
 </head>
@@ -93,16 +59,14 @@
   <!-- 实时电子钟 -->
   <div id="clock">加载时间...</div>
 
-  <div class="container">
-    <h1>时间记录器</h1>
-    <button id="workBtn">记录工作时间</button>
-    <button id="playBtn">记录娱乐时间</button>
-    <p>工作时长: <span id="workTime">0min</span></p>
-    <p>娱乐时长: <span id="playTime">0min</span></p>
-    <p>差值 (工作-娱乐): <span id="diffTime">0min</span></p>
-    <!-- 将“一键清空”按钮放在差值下面 -->
-    <button id="clearBtn">一键清空</button>
-  </div>
+  <h1>时间记录器</h1>
+  <button id="workBtn">记录工作时间</button>
+  <button id="playBtn">记录娱乐时间</button>
+  <p>工作时长: <span id="workTime">0min</span></p>
+  <p>娱乐时长: <span id="playTime">0min</span></p>
+  <p>差值 (工作-娱乐): <span id="diffTime">0min</span></p>
+  <!-- “一键清空”按钮放在最下面 -->
+  <button id="clearBtn">一键清空</button>
   
   <script>
     // 实时电子钟更新函数
