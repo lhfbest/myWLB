@@ -112,9 +112,9 @@
   </div>
 
   <div class="timer-display">
-    <p>工作时长: <span id="workTime">0min</span></p>
-    <p>娱乐时长: <span id="playTime">0min</span></p>
-    <p>差值 (工作-娱乐): <span id="diffTime">0min</span></p>
+    <p>工作时长: <span id="workTime">0h 0min 0s</span></p>
+    <p>娱乐时长: <span id="playTime">0h 0min 0s</span></p>
+    <p>差值 (工作-娱乐): <span id="diffTime">0h 0min 0s</span></p>
     <div id="currentTimers">
       <p id="currentWorkTimer" style="display: none;">工作中：0h 0min 0s</p>
       <p id="currentPlayTimer" style="display: none;">娱乐中：0h 0min 0s</p>
@@ -147,6 +147,14 @@
     let lastWorkRecordTime = null;
     let lastPlayRecordTime = null;
 
+    function formatTime(totalMinutes) {
+      let totalSeconds = Math.round(totalMinutes * 60);
+      let hours = Math.floor(totalSeconds / 3600);
+      let minutes = Math.floor((totalSeconds % 3600) / 60);
+      let seconds = totalSeconds % 60;
+      return `${hours}h ${minutes}min ${seconds}s`;
+    }
+
     function updateDisplay() {
       let workEvents = events.filter(e => e.type === 'work');
       let playEvents = events.filter(e => e.type === 'play');
@@ -157,9 +165,9 @@
       let playExpr = playEvents.map(e => e.value).join('+') || '0';
       let diffExpr = events.map(e => (e.type === 'work' ? '+' + e.value : '-' + e.value)).join('');
       if(diffExpr.startsWith('+')) diffExpr = diffExpr.substring(1);
-      document.getElementById('workTime').textContent = `${workExpr}=${workSum}min`;
-      document.getElementById('playTime').textContent = `${playExpr}=${playSum}min`;
-      document.getElementById('diffTime').textContent = `${diffExpr}=${diffSum}min`;
+      document.getElementById('workTime').textContent = `${workExpr}=${formatTime(workSum)}`;
+      document.getElementById('playTime').textContent = `${playExpr}=${formatTime(playSum)}`;
+      document.getElementById('diffTime').textContent = `${diffExpr}=${formatTime(diffSum)}`;
     }
 
     document.getElementById('workBtn').addEventListener('click', () => {
@@ -221,10 +229,9 @@
             updateDisplay();
           }
           lastWorkRecordTime = now;
-        }, 10000);  // 修改为10秒
+        }, 1000);  // 每秒记录一次
       }
     });
-
 
     document.getElementById('stopWorkBtn').addEventListener('click', () => {
       if(workTimerStart !== null) {
@@ -257,7 +264,7 @@
             updateDisplay();
           }
           lastPlayRecordTime = now;
-        }, 10000);  // 修改为10秒
+        }, 1000);  // 每秒记录一次
       }
     });
 
