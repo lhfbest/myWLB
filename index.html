@@ -80,11 +80,6 @@
       color: #555;
     }
     /* 徽章样式 */
-    #badges {
-      margin-top: 20px;
-      padding: 10px;
-      border-top: 1px solid #ccc;
-    }
     .badge {
       display: inline-block;
       margin-right: 10px;
@@ -93,6 +88,17 @@
       border-radius: 5px;
       background: #eee;
       font-size: 14px;
+      opacity: 0.5;
+      transition: opacity 0.3s, font-weight 0.3s;
+    }
+    .badge.active {
+      opacity: 1;
+      font-weight: bold;
+    }
+    #badges, #diffBadges {
+      margin-top: 20px;
+      padding: 10px;
+      border-top: 1px solid #ccc;
     }
   </style>
 </head>
@@ -121,8 +127,11 @@
     </div>
   </div>
   <button id="clearBtn">一键清空</button>
-  <!-- 徽章显示区域 -->
+  
+  <!-- 工作成就徽章显示区域 -->
   <div id="badges"></div>
+  <!-- 差值成就徽章显示区域 -->
+  <div id="diffBadges"></div>
   
   <script>
     function updateClock() {
@@ -171,25 +180,45 @@
       document.getElementById('workTime').textContent = `${workExpr} = ${formatTime(workSum)}`;
       document.getElementById('playTime').textContent = `${playExpr} = ${formatTime(playSum)}`;
       document.getElementById('diffTime').textContent = `${diffExpr} = ${formatTime(diffSum)}`;
-
-      // 更新徽章显示
+      
+      // 工作成就徽章逻辑
       const badgesContainer = document.getElementById('badges');
       badgesContainer.innerHTML = '';
-      const achievements = [
-        { threshold: 1800, label: '小试锋芒(30min)', icon: '🎖️' },
-        { threshold: 3600, label: '卧龙出山(1h)', icon: '🏅' },
-        { threshold: 7200, label: '双连！一战成名(2h)', icon: '🎖️' },
-        { threshold: 10800, label: '三连！举世皆惊(3h)', icon: '🏅' },
-        { threshold: 14400, label: '四连！天下无敌(4h)', icon: '🎖️' },
-        { threshold: 18000, label: '五连！诛天灭地(5h)', icon: '🏅' }
+      const workAchievements = [
+        { threshold: 1800, label: '小试锋芒（30min）', icon: '🎖️' },
+        { threshold: 3600, label: '卧龙出山（1h）', icon: '🏅' },
+        { threshold: 7200, label: '双连！一战成名（2h）', icon: '🎖️' },
+        { threshold: 10800, label: '三连！举世皆惊（3h）', icon: '🏅' },
+        { threshold: 14400, label: '四连！天下无敌（4h）', icon: '🎖️' },
+        { threshold: 18000, label: '五连！诛天灭地（5h）', icon: '🏅' }
       ];
-      achievements.forEach(ach => {
-        if(workSum >= ach.threshold) {
-          const span = document.createElement('span');
-          span.className = 'badge';
-          span.textContent = `${ach.icon} ${ach.label}`;
-          badgesContainer.appendChild(span);
-        }
+      workAchievements.forEach(ach => {
+        const span = document.createElement('span');
+        span.className = 'badge' + (workSum >= ach.threshold ? ' active' : '');
+        span.textContent = `${ach.icon} ${ach.label}`;
+        badgesContainer.appendChild(span);
+      });
+
+      // 差值成就徽章逻辑
+      const diffBadgesContainer = document.getElementById('diffBadges');
+      diffBadgesContainer.innerHTML = '';
+      const diffAchievements = [
+        { threshold: 1800, label: '小有存粮（30min）', icon: '🌾' },
+        { threshold: 3600, label: '半仓满盈（1h）', icon: '🌾' },
+        { threshold: 5400, label: '囤积成仓（1.5h）', icon: '🌾' },
+        { threshold: 7200, label: '谷堆满仓（2h）', icon: '🌾' },
+        { threshold: 10800, label: '富甲一方（3h）', icon: '🌾' },
+        { threshold: 14400, label: '金谷满仓（4h）', icon: '🌾' },
+        { threshold: 18000, label: '粮仓巨贾（5h）', icon: '🌾' },
+        { threshold: 21600, label: '谷满天下（6h）', icon: '🌾' },
+        { threshold: 25200, label: '五谷之皇（7h）', icon: '🌾' },
+        { threshold: 28800, label: '万仓之主（8h）', icon: '🌾' }
+      ];
+      diffAchievements.forEach(ach => {
+        const span = document.createElement('span');
+        span.className = 'badge' + (diffSum >= ach.threshold ? ' active' : '');
+        span.textContent = `${ach.icon} ${ach.label}`;
+        diffBadgesContainer.appendChild(span);
       });
     }
 
