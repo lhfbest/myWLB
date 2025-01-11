@@ -221,9 +221,10 @@
             updateDisplay();
           }
           lastWorkRecordTime = now;
-        }, 1000);
+        }, 10000);  // 修改为10秒
       }
     });
+
 
     document.getElementById('stopWorkBtn').addEventListener('click', () => {
       if(workTimerStart !== null) {
@@ -256,7 +257,7 @@
             updateDisplay();
           }
           lastPlayRecordTime = now;
-        }, 1000);
+        }, 10000);  // 修改为10秒
       }
     });
 
