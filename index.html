@@ -54,20 +54,20 @@
       font-size: 18px;
       margin: 10px 0;
     }
+    /* 固定位置的一键清空按钮 */
     #clearBtn {
-      margin-top: 40px;
-      width: 150px;           /* 调整按钮宽度，使其较小 */
-      padding: 5px 10px;      /* 调整按钮内边距，使其较小 */
-      font-size: 14px;        /* 较小字体 */
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      width: 150px;
+      padding: 5px 10px;
+      font-size: 14px;
       border: 1px solid #ccc;
       background: #f9f9f9;
       color: #333;
       border-radius: 4px;
       cursor: pointer;
       transition: background 0.3s;
-      position: fixed;        /* 固定在页面底部 */
-      bottom: 20px;
-      right: 20px;
     }
     #clearBtn:hover {
       background: #eee;
@@ -116,17 +116,18 @@
       <button id="stopPlayBtn" disabled>停止娱乐</button>
     </div>
     <div class="button-group">
-      <button id="workBtn">记录工作时间</button>
-      <button id="playBtn">记录娱乐时间</button>
+      <button id="workBtn">手动输入工作时长</button>
+      <button id="playBtn">手动输入娱乐时长</button>
+      <button id="surplusBtn">过去结余输入</button>
     </div>
   </div>
   <div class="timer-display">
-    <p>工作时长: <span id="workTime">0h 0min 0s</span></p>
-    <p>娱乐时长: <span id="playTime">0h 0min 0s</span></p>
-    <p>结余 (工作-娱乐): <span id="diffTime">0h 0min 0s</span></p>
+    <p>工作时长:<br><span id="workTime">0h 0min 0s</span></p>
+    <p>娱乐时长:<br><span id="playTime">0h 0min 0s</span></p>
+    <p>结余 (工作-娱乐+过去结余):<br><span id="diffTime">0h 0min 0s</span></p>
     <div id="currentTimers">
-      <p id="currentWorkTimer" style="display: none;">工作中：0h 0min 0s 0ms</p>
-      <p id="currentPlayTimer" style="display: none;">娱乐中：0h 0min 0s 0ms</p>
+      <p id="currentWorkTimer" style="display: none;">工作中：0h 0min 0s</p>
+      <p id="currentPlayTimer" style="display: none;">娱乐中：0h 0min 0s</p>
     </div>
   </div>
   
@@ -157,6 +158,7 @@
     updateClock();
 
     let events = JSON.parse(localStorage.getItem('events')) || [];
+    let pastSurplus = parseFloat(localStorage.getItem('pastSurplus')) || 0;
     let workTimerStart = null;
     let playTimerStart = null;
     let workInterval = null;
@@ -181,9 +183,8 @@
       let playEvents = events.filter(e => e.type === 'play');
       let workSum = workEvents.reduce((sum, e) => sum + e.value, 0);
       let playSum = playEvents.reduce((sum, e) => sum + e.value, 0);
-      let diffSum = workSum - playSum;
+      let diffSum = workSum - playSum + pastSurplus;
       
-      // 换行显示表达式
       let workExpr = workEvents.length === 0 ? '0h 0min 0s' : workEvents.map(e => '+' + formatTime(e.value)).join('<br>');
       let playExpr = playEvents.length === 0 ? '0h 0min 0s' : playEvents.map(e => '+' + formatTime(e.value)).join('<br>');
       let diffExpr = events.length === 0 ? '0h 0min 0s' : events.map(e => (e.type === 'work' ? '+' : '-') + formatTime(e.value)).join('<br>');
@@ -210,7 +211,7 @@
         badgesContainer.appendChild(span);
       });
 
-      // 差余成就徽章逻辑
+      // 结余成就徽章逻辑
       const diffBadgesContainer = document.getElementById('diffBadges');
       diffBadgesContainer.innerHTML = '';
       const diffAchievements = [
@@ -251,15 +252,23 @@
       }
     });
 
+    document.getElementById('surplusBtn').addEventListener('click', () => {
+      const amount = parseFloat(prompt('请输入过去结余时间（分钟）：'));
+      if (!isNaN(amount) && amount > 0) {
+        pastSurplus += amount * 60;
+        localStorage.setItem('pastSurplus', pastSurplus);
+        updateDisplay();
+      }
+    });
+
     function updateWorkTimer() {
       if(workTimerStart !== null) {
         let elapsed = Date.now() - workTimerStart;
         let totalSeconds = Math.floor(elapsed / 1000);
-        let ms = elapsed % 1000;
         let hours = Math.floor(totalSeconds / 3600);
         let minutes = Math.floor((totalSeconds % 3600) / 60);
         let seconds = totalSeconds % 60;
-        document.getElementById('currentWorkTimer').textContent = `工作中：${hours}h ${minutes}min ${seconds}s ${ms}ms`;
+        document.getElementById('currentWorkTimer').textContent = `工作中：${hours}h ${minutes}min ${seconds}s`;
       }
     }
 
@@ -267,11 +276,10 @@
       if(playTimerStart !== null) {
         let elapsed = Date.now() - playTimerStart;
         let totalSeconds = Math.floor(elapsed / 1000);
-        let ms = elapsed % 1000;
         let hours = Math.floor(totalSeconds / 3600);
         let minutes = Math.floor((totalSeconds % 3600) / 60);
         let seconds = totalSeconds % 60;
-        document.getElementById('currentPlayTimer').textContent = `娱乐中：${hours}h ${minutes}min ${seconds}s ${ms}ms`;
+        document.getElementById('currentPlayTimer').textContent = `娱乐中：${hours}h ${minutes}min ${seconds}s`;
       }
     }
 
@@ -308,7 +316,7 @@
         document.getElementById('startWorkBtn').disabled = false;
         document.getElementById('stopWorkBtn').disabled = true;
         document.getElementById('currentWorkTimer').style.display = 'none';
-        document.getElementById('currentWorkTimer').textContent = '工作中：0h 0min 0s 0ms';
+        document.getElementById('currentWorkTimer').textContent = '工作中：0h 0min 0s';
       }
     });
 
@@ -345,14 +353,16 @@
         document.getElementById('startPlayBtn').disabled = false;
         document.getElementById('stopPlayBtn').disabled = true;
         document.getElementById('currentPlayTimer').style.display = 'none';
-        document.getElementById('currentPlayTimer').textContent = '娱乐中：0h 0min 0s 0ms';
+        document.getElementById('currentPlayTimer').textContent = '娱乐中：0h 0min 0s';
       }
     });
 
     document.getElementById('clearBtn').addEventListener('click', () => {
       if(confirm("确认要清空所有记录吗？")) {
         events = [];
+        pastSurplus = 0;
         localStorage.removeItem('events');
+        localStorage.removeItem('pastSurplus');
         updateDisplay();
         if(workTimerStart !== null) {
           clearInterval(workInterval);
@@ -361,7 +371,7 @@
           document.getElementById('startWorkBtn').disabled = false;
           document.getElementById('stopWorkBtn').disabled = true;
           document.getElementById('currentWorkTimer').style.display = 'none';
-          document.getElementById('currentWorkTimer').textContent = '工作中：0h 0min 0s 0ms';
+          document.getElementById('currentWorkTimer').textContent = '工作中：0h 0min 0s';
         }
         if(playTimerStart !== null) {
           clearInterval(playInterval);
@@ -370,7 +380,7 @@
           document.getElementById('startPlayBtn').disabled = false;
           document.getElementById('stopPlayBtn').disabled = true;
           document.getElementById('currentPlayTimer').style.display = 'none';
-          document.getElementById('currentPlayTimer').textContent = '娱乐中：0h 0min 0s 0ms';
+          document.getElementById('currentPlayTimer').textContent = '娱乐中：0h 0min 0s';
         }
       }
     });
