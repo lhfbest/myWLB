@@ -9,7 +9,7 @@
     /* 全局样式：冷淡风格 */
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: #ffffff; /* 纯白背景 */
+      background: #ffffff;
       color: #333;
       margin: 20px;
     }
@@ -60,11 +60,21 @@
   <div id="clock">加载时间...</div>
 
   <h1>时间记录器</h1>
+
+  <!-- 工作相关按钮 -->
   <button id="workBtn">记录工作时间</button>
+  <button id="startWorkBtn">开始工作</button>
+  <button id="stopWorkBtn" disabled>停止工作</button>
+
+  <!-- 娱乐相关按钮 -->
   <button id="playBtn">记录娱乐时间</button>
+  <button id="startPlayBtn">开始娱乐</button>
+  <button id="stopPlayBtn" disabled>停止娱乐</button>
+
   <p>工作时长: <span id="workTime">0min</span></p>
   <p>娱乐时长: <span id="playTime">0min</span></p>
   <p>差值 (工作-娱乐): <span id="diffTime">0min</span></p>
+
   <!-- “一键清空”按钮放在最下面 -->
   <button id="clearBtn">一键清空</button>
   
@@ -80,12 +90,13 @@
       const second = String(now.getSeconds()).padStart(2, '0');
       document.getElementById('clock').textContent = `${year}年 ${month}月 ${day}日 ${hour}:${minute}:${second}`;
     }
-    // 每秒更新一次时钟
     setInterval(updateClock, 1000);
-    updateClock(); // 初始化时钟显示
+    updateClock();
 
-    // 初始化和更新数据相关部分
+    // 初始化数据和定时器变量
     let events = JSON.parse(localStorage.getItem('events')) || [];
+    let workTimerStart = null;
+    let playTimerStart = null;
 
     function updateDisplay() {
       let workEvents = events.filter(e => e.type === 'work');
@@ -117,6 +128,54 @@
         events.push({type: 'play', value: amount});
         localStorage.setItem('events', JSON.stringify(events));
         updateDisplay();
+      }
+    });
+
+    // 开始工作和停止工作逻辑
+    document.getElementById('startWorkBtn').addEventListener('click', () => {
+      if(workTimerStart === null) {
+        workTimerStart = Date.now();
+        document.getElementById('startWorkBtn').disabled = true;
+        document.getElementById('stopWorkBtn').disabled = false;
+      }
+    });
+
+    document.getElementById('stopWorkBtn').addEventListener('click', () => {
+      if(workTimerStart !== null) {
+        let elapsed = (Date.now() - workTimerStart) / 60000; // 转换为分钟
+        elapsed = Math.round(elapsed);
+        if(elapsed > 0) {
+          events.push({type: 'work', value: elapsed});
+          localStorage.setItem('events', JSON.stringify(events));
+          updateDisplay();
+        }
+        workTimerStart = null;
+        document.getElementById('startWorkBtn').disabled = false;
+        document.getElementById('stopWorkBtn').disabled = true;
+      }
+    });
+
+    // 开始娱乐和停止娱乐逻辑
+    document.getElementById('startPlayBtn').addEventListener('click', () => {
+      if(playTimerStart === null) {
+        playTimerStart = Date.now();
+        document.getElementById('startPlayBtn').disabled = true;
+        document.getElementById('stopPlayBtn').disabled = false;
+      }
+    });
+
+    document.getElementById('stopPlayBtn').addEventListener('click', () => {
+      if(playTimerStart !== null) {
+        let elapsed = (Date.now() - playTimerStart) / 60000; // 转换为分钟
+        elapsed = Math.round(elapsed);
+        if(elapsed > 0) {
+          events.push({type: 'play', value: elapsed});
+          localStorage.setItem('events', JSON.stringify(events));
+          updateDisplay();
+        }
+        playTimerStart = null;
+        document.getElementById('startPlayBtn').disabled = false;
+        document.getElementById('stopPlayBtn').disabled = true;
       }
     });
 
