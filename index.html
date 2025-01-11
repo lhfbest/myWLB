@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>时间记录器</title>
+  <link rel="manifest" href="manifest.json">
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    button { padding: 10px; margin: 5px 0; font-size: 16px; }
+    p { font-size: 18px; }
+  </style>
+</head>
+<body>
+  <h1>时间记录器</h1>
+  <div>
+    <button id="workBtn">记录工作时间</button><br>
+    <button id="playBtn">记录娱乐时间</button><br>
+    <p>工作时长: <span id="workTime">0</span> 小时</p>
+    <p>娱乐时长: <span id="playTime">0</span> 小时</p>
+    <p>差值 (工作-娱乐): <span id="diffTime">0</span> 小时</p>
+  </div>
+  
+  <script>
+    // 从 localStorage 初始化数据
+    let workTime = parseFloat(localStorage.getItem('workTime')) || 0;
+    let playTime = parseFloat(localStorage.getItem('playTime')) || 0;
+
+    function updateDisplay() {
+      document.getElementById('workTime').textContent = workTime;
+      document.getElementById('playTime').textContent = playTime;
+      document.getElementById('diffTime').textContent = (workTime - playTime).toFixed(2);
+    }
+
+    document.getElementById('workBtn').addEventListener('click', () => {
+      const amount = parseFloat(prompt('你工作了多少小时？'));
+      if (!isNaN(amount)) {
+        workTime += amount;
+        localStorage.setItem('workTime', workTime);
+        updateDisplay();
+      }
+    });
+
+    document.getElementById('playBtn').addEventListener('click', () => {
+      const amount = parseFloat(prompt('你娱乐了多少小时？'));
+      if (!isNaN(amount)) {
+        playTime += amount;
+        localStorage.setItem('playTime', playTime);
+        updateDisplay();
+      }
+    });
+
+    updateDisplay();
+
+    // 注册Service Worker
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('sw.js')
+        .then(registration => console.log('Service Worker 注册成功:', registration))
+        .catch(error => console.log('Service Worker 注册失败:', error));
+    }
+  </script>
+</body>
+</html>
