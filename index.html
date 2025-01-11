@@ -176,12 +176,12 @@
       const badgesContainer = document.getElementById('badges');
       badgesContainer.innerHTML = '';
       const achievements = [
-        { threshold: 1800, label: '小试锋芒', icon: '🎖️' },
-        { threshold: 3600, label: '卧龙出山', icon: '🏅' },
-        { threshold: 7200, label: '双连！一战成名', icon: '🎖️' },
-        { threshold: 10800, label: '三连！举世皆惊', icon: '🏅' },
-        { threshold: 14400, label: '四连！天下无敌', icon: '🎖️' },
-        { threshold: 18000, label: '五连！诛天灭地', icon: '🏅' }
+        { threshold: 1800, label: '小试锋芒(30min)', icon: '🎖️' },
+        { threshold: 3600, label: '卧龙出山(1h)', icon: '🏅' },
+        { threshold: 7200, label: '双连！一战成名(2h)', icon: '🎖️' },
+        { threshold: 10800, label: '三连！举世皆惊(3h)', icon: '🏅' },
+        { threshold: 14400, label: '四连！天下无敌(4h)', icon: '🎖️' },
+        { threshold: 18000, label: '五连！诛天灭地(5h)', icon: '🏅' }
       ];
       achievements.forEach(ach => {
         if(workSum >= ach.threshold) {
