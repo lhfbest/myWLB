@@ -13,47 +13,84 @@
       color: #333;
       margin: 20px;
     }
+
+    /* 实时钟样式，居中显示 */
     #clock {
       font-size: 20px;
       margin-bottom: 20px;
       text-align: center;
       color: #333;
     }
+
     h1 {
       color: #333;
-      margin-bottom: 10px;
+      margin-bottom: 20px;
+      text-align: center;
     }
-    /* Flex容器，用于左右布局按钮 */
-    #buttonContainer {
+
+    .button-container {
       display: flex;
       justify-content: space-between;
-      align-items: flex-start;
+      margin-bottom: 20px;
     }
-    button {
-      display: block;
-      width: auto;
+
+    .button-group {
+      display: flex;
+      flex-direction: column;
+      width: 48%;
+    }
+
+    .button-group button {
+      width: 100%;
       padding: 10px 20px;
-      margin: 10px 0;
+      margin: 5px 0;
       font-size: 16px;
       border: 1px solid #ccc;
       background: #f9f9f9;
       color: #333;
       border-radius: 4px;
       cursor: pointer;
+      transition: background 0.3s;
     }
-    button:hover {
+
+    .button-group button:hover {
       background: #eee;
     }
+
     p {
       font-size: 18px;
       margin: 10px 0;
     }
+
+    /* 为“一键清空”按钮增加上方间距，使其远离其他元素 */
     #clearBtn {
       margin-top: 40px;
+      width: 100%;
+      padding: 10px 20px;
+      font-size: 16px;
+      border: 1px solid #ccc;
+      background: #f9f9f9;
+      color: #333;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background 0.3s;
     }
-    /* 实时显示区域样式 */
-    #timerDisplayArea {
+
+    #clearBtn:hover {
+      background: #eee;
+    }
+
+    /* 计时器显示区域 */
+    .timer-display {
       margin-top: 20px;
+      padding: 10px;
+      border-top: 1px solid #ccc;
+    }
+
+    .timer-display p {
+      font-size: 16px;
+      margin: 5px 0;
+      color: #555;
     }
   </style>
 </head>
@@ -63,33 +100,40 @@
 
   <h1>时间记录器</h1>
 
-  <div id="buttonContainer">
-    <div id="timerButtons">
+  <!-- 按钮容器 -->
+  <div class="button-container">
+    <!-- 计时按钮组（左侧） -->
+    <div class="button-group">
       <button id="startWorkBtn">开始工作</button>
       <button id="stopWorkBtn" disabled>停止工作</button>
       <button id="startPlayBtn">开始娱乐</button>
       <button id="stopPlayBtn" disabled>停止娱乐</button>
     </div>
-    <div id="manualButtons">
+
+    <!-- 手动记录按钮组（右侧） -->
+    <div class="button-group">
       <button id="workBtn">记录工作时间</button>
       <button id="playBtn">记录娱乐时间</button>
     </div>
   </div>
 
-  <!-- 实时计时显示区域 -->
-  <div id="timerDisplayArea">
-    <p id="workTimerDisplay"></p>
-    <p id="playTimerDisplay"></p>
+  <!-- 计时器显示区域 -->
+  <div class="timer-display">
+    <p>工作时长: <span id="workTime">0min</span></p>
+    <p>娱乐时长: <span id="playTime">0min</span></p>
+    <p>差值 (工作-娱乐): <span id="diffTime">0min</span></p>
+    <div id="currentTimers">
+      <!-- 实时计时显示 -->
+      <p id="currentWorkTimer" style="display: none;">工作中：0h 0min 0s</p>
+      <p id="currentPlayTimer" style="display: none;">娱乐中：0h 0min 0s</p>
+    </div>
   </div>
 
-  <p>工作时长: <span id="workTime">0min</span></p>
-  <p>娱乐时长: <span id="playTime">0min</span></p>
-  <p>差值 (工作-娱乐): <span id="diffTime">0min</span></p>
-
+  <!-- “一键清空”按钮放在最下面 -->
   <button id="clearBtn">一键清空</button>
   
   <script>
-    // 实时电子钟更新
+    // 实时电子钟更新函数
     function updateClock() {
       const now = new Date();
       const year = now.getFullYear();
@@ -103,6 +147,7 @@
     setInterval(updateClock, 1000);
     updateClock();
 
+    // 初始化数据和定时器变量
     let events = JSON.parse(localStorage.getItem('events')) || [];
     let workTimerStart = null;
     let playTimerStart = null;
@@ -142,21 +187,128 @@
       }
     });
 
-    // 开始工作逻辑
+    // 开始工作和停止工作逻辑
     document.getElementById('startWorkBtn').addEventListener('click', () => {
       if(workTimerStart === null) {
         workTimerStart = Date.now();
         document.getElementById('startWorkBtn').disabled = true;
         document.getElementById('stopWorkBtn').disabled = false;
-        workInterval = setInterval(() => {
-          let elapsedMs = Date.now() - workTimerStart;
-          let h = Math.floor(elapsedMs / 3600000);
-          let m = Math.floor((elapsedMs % 3600000) / 60000);
-          let s = Math.floor((elapsedMs % 60000) / 1000);
-          document.getElementById('workTimerDisplay').textContent = `工作了：${h}h ${m}min ${s}s`;
-        }, 1000);
+        // 显示工作计时器
+        document.getElementById('currentWorkTimer').style.display = 'block';
+        updateWorkTimer();
+        workInterval = setInterval(updateWorkTimer, 1000);
       }
     });
 
     document.getElementById('stopWorkBtn').addEventListener('click', () => {
-    
+      if(workTimerStart !== null) {
+        clearInterval(workInterval);
+        let elapsed = (Date.now() - workTimerStart) / 60000; // 转换为分钟
+        elapsed = Math.round(elapsed * 10) / 10;  // 保留一位小数
+        if(elapsed > 0) {
+          events.push({type: 'work', value: elapsed});
+          localStorage.setItem('events', JSON.stringify(events));
+          updateDisplay();
+        }
+        workTimerStart = null;
+        document.getElementById('startWorkBtn').disabled = false;
+        document.getElementById('stopWorkBtn').disabled = true;
+        // 隐藏工作计时器
+        document.getElementById('currentWorkTimer').style.display = 'none';
+        document.getElementById('currentWorkTimer').textContent = '工作中：0h 0min 0s';
+      }
+    });
+
+    // 开始娱乐和停止娱乐逻辑
+    document.getElementById('startPlayBtn').addEventListener('click', () => {
+      if(playTimerStart === null) {
+        playTimerStart = Date.now();
+        document.getElementById('startPlayBtn').disabled = true;
+        document.getElementById('stopPlayBtn').disabled = false;
+        // 显示娱乐计时器
+        document.getElementById('currentPlayTimer').style.display = 'block';
+        updatePlayTimer();
+        playInterval = setInterval(updatePlayTimer, 1000);
+      }
+    });
+
+    document.getElementById('stopPlayBtn').addEventListener('click', () => {
+      if(playTimerStart !== null) {
+        clearInterval(playInterval);
+        let elapsed = (Date.now() - playTimerStart) / 60000; // 转换为分钟
+        elapsed = Math.round(elapsed * 10) / 10;  // 保留一位小数
+        if(elapsed > 0) {
+          events.push({type: 'play', value: elapsed});
+          localStorage.setItem('events', JSON.stringify(events));
+          updateDisplay();
+        }
+        playTimerStart = null;
+        document.getElementById('startPlayBtn').disabled = false;
+        document.getElementById('stopPlayBtn').disabled = true;
+        // 隐藏娱乐计时器
+        document.getElementById('currentPlayTimer').style.display = 'none';
+        document.getElementById('currentPlayTimer').textContent = '娱乐中：0h 0min 0s';
+      }
+    });
+
+    // 一键清空逻辑
+    document.getElementById('clearBtn').addEventListener('click', () => {
+      if(confirm("确认要清空所有记录吗？")) {
+        // 清空事件记录
+        events = [];
+        localStorage.removeItem('events');
+        updateDisplay();
+        // 重置计时器显示
+        if(workTimerStart !== null) {
+          clearInterval(workInterval);
+          workTimerStart = null;
+          document.getElementById('startWorkBtn').disabled = false;
+          document.getElementById('stopWorkBtn').disabled = true;
+          document.getElementById('currentWorkTimer').style.display = 'none';
+          document.getElementById('currentWorkTimer').textContent = '工作中：0h 0min 0s';
+        }
+        if(playTimerStart !== null) {
+          clearInterval(playInterval);
+          playTimerStart = null;
+          document.getElementById('startPlayBtn').disabled = false;
+          document.getElementById('stopPlayBtn').disabled = true;
+          document.getElementById('currentPlayTimer').style.display = 'none';
+          document.getElementById('currentPlayTimer').textContent = '娱乐中：0h 0min 0s';
+        }
+      }
+    });
+
+    // 实时更新工作计时器显示
+    function updateWorkTimer() {
+      if(workTimerStart !== null) {
+        let elapsed = Date.now() - workTimerStart;
+        let totalSeconds = Math.floor(elapsed / 1000);
+        let hours = Math.floor(totalSeconds / 3600);
+        let minutes = Math.floor((totalSeconds % 3600) / 60);
+        let seconds = totalSeconds % 60;
+        document.getElementById('currentWorkTimer').textContent = `工作中：${hours}h ${minutes}min ${seconds}s`;
+      }
+    }
+
+    // 实时更新娱乐计时器显示
+    function updatePlayTimer() {
+      if(playTimerStart !== null) {
+        let elapsed = Date.now() - playTimerStart;
+        let totalSeconds = Math.floor(elapsed / 1000);
+        let hours = Math.floor(totalSeconds / 3600);
+        let minutes = Math.floor((totalSeconds % 3600) / 60);
+        let seconds = totalSeconds % 60;
+        document.getElementById('currentPlayTimer').textContent = `娱乐中：${hours}h ${minutes}min ${seconds}s`;
+      }
+    }
+
+    updateDisplay();
+
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('sw.js')
+        .then(registration => console.log('Service Worker 注册成功:', registration))
+        .catch(error => console.log('Service Worker 注册失败:', error));
+    }
+  </script>
+</body>
+</html>
